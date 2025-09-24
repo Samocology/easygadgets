@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 
 interface HeaderProps {
   cartCount?: number;
+  onSearchChange?: (query: string) => void;
+  onCategorySelect?: (category: string) => void;
 }
 
-export const Header = ({ cartCount = 0 }: HeaderProps) => {
+export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -37,7 +39,7 @@ export const Header = ({ cartCount = 0 }: HeaderProps) => {
               {isMenuOpen ? <X /> : <Menu />}
             </Button>
             <div className="gradient-primary bg-clip-text text-transparent">
-              <h1 className="text-2xl font-bold">ElectroTech</h1>
+              <h1 className="text-2xl font-bold">Easy Gadgets</h1>
             </div>
           </div>
 
@@ -48,7 +50,10 @@ export const Header = ({ cartCount = 0 }: HeaderProps) => {
               <Input
                 placeholder="Search products..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  onSearchChange?.(e.target.value);
+                }}
                 className="pl-10 transition-smooth focus:shadow-glow"
               />
             </div>
@@ -79,6 +84,7 @@ export const Header = ({ cartCount = 0 }: HeaderProps) => {
             <button
               key={category}
               className="nav-link text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
+              onClick={() => onCategorySelect?.(category)}
             >
               {category}
             </button>
@@ -95,7 +101,10 @@ export const Header = ({ cartCount = 0 }: HeaderProps) => {
                 <Input
                   placeholder="Search products..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    onSearchChange?.(e.target.value);
+                  }}
                   className="pl-10"
                 />
               </div>
@@ -107,6 +116,10 @@ export const Header = ({ cartCount = 0 }: HeaderProps) => {
                 <button
                   key={category}
                   className="block w-full text-left px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-smooth"
+                  onClick={() => {
+                    onCategorySelect?.(category);
+                    setIsMenuOpen(false);
+                  }}
                 >
                   {category}
                 </button>

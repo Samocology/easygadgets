@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { ProductCard } from "./ProductCard";
+import { ProductListCard } from "./ProductListCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { mockProducts, Product } from "@/data/mockProducts";
 import { useCart } from "@/hooks/useCart";
 import { Filter, Grid, List } from "lucide-react";
 
-export const ProductGrid = () => {
+interface ProductGridProps {
+  searchQuery?: string;
+}
+
+export const ProductGrid = ({ searchQuery = "" }: ProductGridProps) => {
   const [products] = useState<Product[]>(mockProducts);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -15,9 +20,14 @@ export const ProductGrid = () => {
 
   const categories = ["All", ...Array.from(new Set(products.map(p => p.category)))];
 
-  const filteredProducts = selectedCategory === "All" 
-    ? products 
-    : products.filter(p => p.category === selectedCategory);
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    const matchesSearch = searchQuery === "" || 
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   const handleAddToCart = (id: string) => {
     const product = products.find(p => p.id === id);
@@ -114,22 +124,43 @@ export const ProductGrid = () => {
             : "grid-cols-1"
         }`}>
           {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              name={product.name}
-              brand={product.brand}
-              price={product.price}
-              originalPrice={product.originalPrice}
-              rating={product.rating}
-              reviewCount={product.reviewCount}
-              image={product.image}
-              category={product.category}
-              isNew={product.isNew}
-              onAddToCart={handleAddToCart}
-              onToggleFavorite={handleToggleFavorite}
-              isFavorite={favorites.has(product.id)}
-            />
+            viewMode === "grid" ? (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                brand={product.brand}
+                price={product.price}
+                originalPrice={product.originalPrice}
+                rating={product.rating}
+                reviewCount={product.reviewCount}
+                image={product.image}
+                category={product.category}
+                isNew={product.isNew}
+                onAddToCart={handleAddToCart}
+                onToggleFavorite={handleToggleFavorite}
+                isFavorite={favorites.has(product.id)}
+              />
+            ) : (
+              <ProductListCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                brand={product.brand}
+                price={product.price}
+                originalPrice={product.originalPrice}
+                rating={product.rating}
+                reviewCount={product.reviewCount}
+                image={product.image}
+                category={product.category}
+                isNew={product.isNew}
+                description={product.description}
+                features={product.features}
+                onAddToCart={handleAddToCart}
+                onToggleFavorite={handleToggleFavorite}
+                isFavorite={favorites.has(product.id)}
+              />
+            )
           ))}
         </div>
 
