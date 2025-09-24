@@ -8,13 +8,14 @@ import { useCart } from "@/hooks/useCart";
 const Index = () => {
   const { totalItems } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
   };
 
   const handleCategorySelect = (category: string) => {
-    // Category selection will be handled in ProductGrid
+    setSelectedCategory(category);
   };
 
   return (
@@ -28,6 +29,7 @@ const Index = () => {
         <Hero />
         <ProductGrid 
           searchQuery={searchQuery}
+          selectedCategory={selectedCategory}
         />
       </main>
       <Footer />

@@ -3,6 +3,7 @@ import { Search, ShoppingCart, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   cartCount?: number;
@@ -13,6 +14,7 @@ interface HeaderProps {
 export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   const categories = [
     "Smartphones",
@@ -61,10 +63,20 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
 
           {/* Actions */}
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" className="hidden md:flex">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hidden md:flex"
+              onClick={() => navigate('/profile')}
+            >
               <User className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="relative btn-glow">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative btn-glow"
+              onClick={() => navigate('/cart')}
+            >
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
                 <Badge 
@@ -125,7 +137,14 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
                 </button>
               ))}
               <div className="border-t mt-4 pt-4 px-4">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    navigate('/profile');
+                    setIsMenuOpen(false);
+                  }}
+                >
                   <User className="h-4 w-4 mr-2" />
                   Account
                 </Button>

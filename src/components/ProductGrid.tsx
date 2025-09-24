@@ -9,25 +9,33 @@ import { Filter, Grid, List } from "lucide-react";
 
 interface ProductGridProps {
   searchQuery?: string;
+  selectedCategory?: string;
 }
 
-export const ProductGrid = ({ searchQuery = "" }: ProductGridProps) => {
+export const ProductGrid = ({ searchQuery = "", selectedCategory: propSelectedCategory = "All" }: ProductGridProps) => {
   const [products] = useState<Product[]>(mockProducts);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showFilters, setShowFilters] = useState(false);
+  const [visibleProducts, setVisibleProducts] = useState(8);
   const { addToCart } = useCart();
 
   const categories = ["All", ...Array.from(new Set(products.map(p => p.category)))];
 
   const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    const matchesCategory = propSelectedCategory === "All" || product.category === propSelectedCategory;
     const matchesSearch = searchQuery === "" || 
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.category.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const displayedProducts = filteredProducts.slice(0, visibleProducts);
+
+  const loadMoreProducts = () => {
+    setVisibleProducts(prev => prev + 8);
+  };
 
   const handleAddToCart = (id: string) => {
     const product = products.find(p => p.id === id);
@@ -73,10 +81,11 @@ export const ProductGrid = ({ searchQuery = "" }: ProductGridProps) => {
             {categories.map((category) => (
               <Button
                 key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
+                variant={propSelectedCategory === category ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory(category)}
-                className={selectedCategory === category ? "gradient-primary text-primary-foreground border-0" : ""}
+                onClick={() => {}} // Removed local state management
+                className={propSelectedCategory === category ? "gradient-primary text-primary-foreground border-0" : ""}
+                disabled
               >
                 {category}
                 {category !== "All" && (
@@ -93,6 +102,7 @@ export const ProductGrid = ({ searchQuery = "" }: ProductGridProps) => {
               variant="outline"
               size="icon"
               className="transition-smooth"
+              onClick={() => setShowFilters(!showFilters)}
             >
               <Filter className="h-4 w-4" />
             </Button>
@@ -123,7 +133,7 @@ export const ProductGrid = ({ searchQuery = "" }: ProductGridProps) => {
             ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
             : "grid-cols-1"
         }`}>
-          {filteredProducts.map((product) => (
+          {displayedProducts.map((product) => (
             viewMode === "grid" ? (
               <ProductCard
                 key={product.id}
@@ -165,15 +175,18 @@ export const ProductGrid = ({ searchQuery = "" }: ProductGridProps) => {
         </div>
 
         {/* Load More */}
-        <div className="text-center mt-12">
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="transition-smooth hover:bg-primary hover:text-primary-foreground"
-          >
-            Load More Products
-          </Button>
-        </div>
+        {visibleProducts < filteredProducts.length && (
+          <div className="text-center mt-12">
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="transition-smooth hover:bg-primary hover:text-primary-foreground"
+              onClick={loadMoreProducts}
+            >
+              Load More Products ({filteredProducts.length - visibleProducts} remaining)
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );

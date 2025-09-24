@@ -20,8 +20,8 @@ export const mockProducts: Product[] = [
     id: "1",
     name: "iPhone 15 Pro Max",
     brand: "Apple",
-    price: 1199.99,
-    originalPrice: 1299.99,
+    price: 479199.60, // ₦479,199.60
+    originalPrice: 519599.60, // ₦519,599.60
     rating: 4.8,
     reviewCount: 1547,
     image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500&h=500&fit=crop",
@@ -36,7 +36,7 @@ export const mockProducts: Product[] = [
     id: "2", 
     name: "MacBook Air M3",
     brand: "Apple",
-    price: 1099.99,
+    price: 439199.60, // ₦439,199.60
     rating: 4.9,
     reviewCount: 892,
     image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=500&h=500&fit=crop",
@@ -50,8 +50,8 @@ export const mockProducts: Product[] = [
     id: "3",
     name: "AirPods Pro (3rd Gen)",
     brand: "Apple", 
-    price: 249.99,
-    originalPrice: 279.99,
+    price: 99799.75, // ₦99,799.75
+    originalPrice: 111799.65, // ₦111,799.65
     rating: 4.7,
     reviewCount: 2341,
     image: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=500&h=500&fit=crop",
@@ -65,7 +65,7 @@ export const mockProducts: Product[] = [
     id: "4",
     name: "Samsung Galaxy S24 Ultra",
     brand: "Samsung",
-    price: 1199.99,
+    price: 479199.60, // ₦479,199.60
     rating: 4.6,
     reviewCount: 1234,
     image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500&h=500&fit=crop",
@@ -80,8 +80,8 @@ export const mockProducts: Product[] = [
     id: "5",
     name: "Dell XPS 13 Plus",
     brand: "Dell",
-    price: 999.99,
-    originalPrice: 1199.99,
+    price: 399199.60, // ₦399,199.60
+    originalPrice: 479599.60, // ₦479,599.60
     rating: 4.4,
     reviewCount: 567,
     image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&h=500&fit=crop",
@@ -95,7 +95,7 @@ export const mockProducts: Product[] = [
     id: "6",
     name: "Sony WH-1000XM5",
     brand: "Sony",
-    price: 399.99,
+    price: 159799.60, // ₦159,799.60
     rating: 4.8,
     reviewCount: 1891,
     image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=500&h=500&fit=crop",
@@ -109,7 +109,7 @@ export const mockProducts: Product[] = [
     id: "7",
     name: "Apple Watch Series 9",
     brand: "Apple",
-    price: 399.99,
+    price: 159799.60, // ₦159,799.60
     rating: 4.7,
     reviewCount: 1456,
     image: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=500&h=500&fit=crop",
@@ -124,8 +124,8 @@ export const mockProducts: Product[] = [
     id: "8",
     name: "iPad Air M2",
     brand: "Apple",
-    price: 599.99,
-    originalPrice: 649.99,
+    price: 239599.60, // ₦239,599.60
+    originalPrice: 259599.60, // ₦259,599.60
     rating: 4.6,
     reviewCount: 743,
     image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=500&h=500&fit=crop",

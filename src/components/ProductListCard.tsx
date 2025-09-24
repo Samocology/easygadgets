@@ -2,6 +2,7 @@ import { Star, ShoppingCart, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 interface ProductListCardProps {
   id: string;
@@ -38,14 +39,15 @@ export const ProductListCard = ({
   onToggleFavorite,
   isFavorite = false,
 }: ProductListCardProps) => {
+  const navigate = useNavigate();
   const discountPercentage = originalPrice 
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
   return (
-    <Card className="product-card border-0 shadow-card gradient-card overflow-hidden group">
+    <Card className="product-card border-0 shadow-card gradient-card overflow-hidden group cursor-pointer">
       <CardContent className="p-0">
-        <div className="flex flex-col sm:flex-row">
+        <div className="flex flex-col sm:flex-row" onClick={() => navigate(`/product/${id}`)}>
           {/* Image container */}
           <div className="relative sm:w-64 h-48 sm:h-auto overflow-hidden">
             <img
@@ -73,7 +75,10 @@ export const ProductListCard = ({
               variant="ghost"
               size="icon"
               className="absolute top-3 right-3 bg-background/80 hover:bg-background transition-smooth"
-              onClick={() => onToggleFavorite(id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(id);
+              }}
             >
               <Heart 
                 className={`h-4 w-4 transition-colors ${
@@ -130,11 +135,11 @@ export const ProductListCard = ({
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold text-foreground">
-                    ${price.toFixed(2)}
+                    ₦{price.toLocaleString('en-NG')}
                   </span>
                   {originalPrice && (
                     <span className="text-lg text-muted-foreground line-through">
-                      ${originalPrice.toFixed(2)}
+                      ₦{originalPrice.toLocaleString('en-NG')}
                     </span>
                   )}
                 </div>
@@ -142,7 +147,10 @@ export const ProductListCard = ({
               
               <Button
                 className="btn-glow gradient-primary text-primary-foreground border-0"
-                onClick={() => onAddToCart(id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToCart(id);
+                }}
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Add to Cart
