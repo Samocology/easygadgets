@@ -67,7 +67,7 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
               variant="ghost" 
               size="icon" 
               className="hidden md:flex"
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate('/auth')}
             >
               <User className="h-5 w-5" />
             </Button>
@@ -141,7 +141,7 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
                   variant="ghost" 
                   className="w-full justify-start"
                   onClick={() => {
-                    navigate('/profile');
+                    navigate('/auth');
                     setIsMenuOpen(false);
                   }}
                 >
