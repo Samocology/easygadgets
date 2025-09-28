@@ -1,6 +1,7 @@
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import logo from "@/assets/logo.png";
 
 export const Footer = () => {
   return (
@@ -9,8 +10,11 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="gradient-primary bg-clip-text text-transparent">
-              <h3 className="text-2xl font-bold">ElectroTech</h3>
+            <div className="flex items-center space-x-3">
+              <img src={logo} alt="Easy Gadgets" className="h-12 w-12" />
+              <div className="gradient-primary bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold">Easy Gadgets</h3>
+              </div>
             </div>
             <p className="text-muted-foreground">
               Your trusted destination for premium electronics, smartphones, laptops, and tech accessories.
@@ -85,7 +89,7 @@ export const Footer = () => {
               </div>
               <div className="flex items-center space-x-3 text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span className="text-sm">support@electrotech.com</span>
+                <span className="text-sm">support@easygadgets.com</span>
               </div>
               <div className="flex items-center space-x-3 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
@@ -112,7 +116,7 @@ export const Footer = () => {
         {/* Bottom bar */}
         <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-muted-foreground text-sm">
-            © 2024 ElectroTech. All rights reserved.
+            © 2024 Easy Gadgets. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <button className="text-muted-foreground hover:text-primary text-sm transition-colors">
