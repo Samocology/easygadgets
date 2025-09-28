@@ -10,11 +10,8 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <img src={logo} alt="Easy Gadgets" className="h-12 w-12" />
-              <div className="gradient-primary bg-clip-text text-transparent">
-                <h3 className="text-2xl font-bold">Easy Gadgets</h3>
-              </div>
+            <div className="flex items-center">
+              <img src={logo} alt="Easy Gadgets" className="h-16 w-16" />
             </div>
             <p className="text-muted-foreground">
               Your trusted destination for premium electronics, smartphones, laptops, and tech accessories.

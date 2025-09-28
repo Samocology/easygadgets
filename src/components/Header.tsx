@@ -35,11 +35,8 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
           {/* Top bar */}
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center space-x-4" onClick={() => navigate('/')} role="button">
-              <img src={logo} alt="Easy Gadgets" className="h-10 w-10" />
-              <div className="gradient-primary bg-clip-text text-transparent">
-                <h1 className="text-2xl font-bold">Easy Gadgets</h1>
-              </div>
+            <div className="flex items-center" onClick={() => navigate('/')} role="button" aria-label="Easy Gadgets Home">
+              <img src={logo} alt="Easy Gadgets" className="h-12 w-12 hover:scale-105 transition-smooth cursor-pointer" />
             </div>
 
             {/* Search bar */}
@@ -110,11 +107,8 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
-            <div className="flex items-center space-x-2" onClick={() => navigate('/')} role="button">
-              <img src={logo} alt="Easy Gadgets" className="h-8 w-8" />
-              <div className="gradient-primary bg-clip-text text-transparent">
-                <h1 className="text-lg font-bold">Easy Gadgets</h1>
-              </div>
+            <div className="flex items-center" onClick={() => navigate('/')} role="button" aria-label="Easy Gadgets Home">
+              <img src={logo} alt="Easy Gadgets" className="h-10 w-10 hover:scale-105 transition-smooth cursor-pointer" />
             </div>
 
             {/* Cart */}
