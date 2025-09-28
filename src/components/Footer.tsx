@@ -11,7 +11,7 @@ export const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center">
-              <img src={logo} alt="Easy Gadgets" className="h-16 w-16" />
+              <img src={logo} alt="Easy Gadgets" className="h-24 w-24 drop-shadow-lg" />
             </div>
             <p className="text-muted-foreground">
               Your trusted destination for premium electronics, smartphones, laptops, and tech accessories.
