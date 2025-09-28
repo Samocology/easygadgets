@@ -1,9 +1,26 @@
+import { useState, useEffect } from "react";
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/logo.png";
+import { processLogoBackground } from "@/utils/processLogo";
 
 export const Footer = () => {
+  const [processedLogo, setProcessedLogo] = useState(logo);
+
+  useEffect(() => {
+    const processLogo = async () => {
+      try {
+        const processedLogoUrl = await processLogoBackground(logo);
+        setProcessedLogo(processedLogoUrl);
+      } catch (error) {
+        console.error('Failed to process logo:', error);
+      }
+    };
+    
+    processLogo();
+  }, []);
+
   return (
     <footer className="bg-muted/30 border-t">
       <div className="container mx-auto px-4 py-16">
@@ -11,7 +28,7 @@ export const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center">
-              <img src={logo} alt="Easy Gadgets" className="h-24 w-24 drop-shadow-lg" />
+              <img src={processedLogo} alt="Easy Gadgets" className="h-32 w-32 drop-shadow-lg" />
             </div>
             <p className="text-muted-foreground">
               Your trusted destination for premium electronics, smartphones, laptops, and tech accessories.

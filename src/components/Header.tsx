@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ShoppingCart, Menu, X, User, Smartphone, Laptop, Headphones, Watch, Gamepad2, Zap, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
+import { processLogoBackground } from "@/utils/processLogo";
 
 interface HeaderProps {
   cartCount?: number;
@@ -16,7 +17,21 @@ interface HeaderProps {
 export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [processedLogo, setProcessedLogo] = useState(logo);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const processLogo = async () => {
+      try {
+        const processedLogoUrl = await processLogoBackground(logo);
+        setProcessedLogo(processedLogoUrl);
+      } catch (error) {
+        console.error('Failed to process logo:', error);
+      }
+    };
+    
+    processLogo();
+  }, []);
 
   const categories = [
     { name: "Smartphones", icon: Smartphone },
@@ -36,7 +51,7 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center" onClick={() => navigate('/')} role="button" aria-label="Easy Gadgets Home">
-              <img src={logo} alt="Easy Gadgets" className="h-16 w-16 hover:scale-110 transition-smooth cursor-pointer drop-shadow-lg" />
+              <img src={processedLogo} alt="Easy Gadgets" className="h-20 w-20 hover:scale-110 transition-smooth cursor-pointer drop-shadow-lg" />
             </div>
 
             {/* Search bar */}
@@ -108,7 +123,7 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
             <div className="flex items-center" onClick={() => navigate('/')} role="button" aria-label="Easy Gadgets Home">
-              <img src={logo} alt="Easy Gadgets" className="h-12 w-12 hover:scale-110 transition-smooth cursor-pointer drop-shadow-md" />
+              <img src={processedLogo} alt="Easy Gadgets" className="h-14 w-14 hover:scale-110 transition-smooth cursor-pointer drop-shadow-md" />
             </div>
 
             {/* Cart */}
