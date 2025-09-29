@@ -51,7 +51,7 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center" onClick={() => navigate('/')} role="button" aria-label="Easy Gadgets Home">
-              <img src={processedLogo} alt="Easy Gadgets" className="h-20 w-20 hover:scale-110 transition-smooth cursor-pointer drop-shadow-lg" />
+              <img src={processedLogo} alt="Easy Gadgets" className="h-28 w-28 hover:scale-110 transition-smooth cursor-pointer drop-shadow-lg" />
             </div>
 
             {/* Search bar */}
@@ -123,7 +123,7 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
             <div className="flex items-center" onClick={() => navigate('/')} role="button" aria-label="Easy Gadgets Home">
-              <img src={processedLogo} alt="Easy Gadgets" className="h-14 w-14 hover:scale-110 transition-smooth cursor-pointer drop-shadow-md" />
+              <img src={processedLogo} alt="Easy Gadgets" className="h-18 w-18 hover:scale-110 transition-smooth cursor-pointer drop-shadow-md" />
             </div>
 
             {/* Cart */}
