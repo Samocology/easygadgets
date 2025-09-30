@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { ProductManagement } from "@/components/admin/ProductManagement";
@@ -9,6 +10,14 @@ export type AdminView = "dashboard" | "products" | "orders" | "analytics";
 
 const Admin = () => {
   const [currentView, setCurrentView] = useState<AdminView>("dashboard");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem("adminAuthenticated");
+    if (!isAuthenticated) {
+      navigate("/admin/login");
+    }
+  }, [navigate]);
 
   const renderContent = () => {
     switch (currentView) {
