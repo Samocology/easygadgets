@@ -46,7 +46,7 @@ const AdminLogin = () => {
             <img 
               src={adminLogo} 
               alt="Easy Gadget Store" 
-              className="h-20 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
           </div>
           <CardTitle className="text-2xl font-bold">Admin Dashboard</CardTitle>

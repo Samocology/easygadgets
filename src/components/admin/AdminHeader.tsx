@@ -36,7 +36,7 @@ export const AdminHeader = ({ onMenuToggle, sidebarOpen }: AdminHeaderProps) => 
             <img 
               src={adminLogo} 
               alt="Easy Gadget Store" 
-              className="h-8 sm:h-10 w-auto object-contain"
+              className="h-10 sm:h-12 w-auto object-contain"
             />
             <div className="hidden sm:block">
               <h1 className="text-base sm:text-xl font-semibold text-foreground">Admin Dashboard</h1>
