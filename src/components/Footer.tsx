@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/admin-logo.png";
 import { processLogoBackground } from "@/utils/processLogo";
 
 export const Footer = () => {
