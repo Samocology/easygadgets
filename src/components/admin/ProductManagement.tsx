@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Search, MoreHorizontal, Edit, Trash, Eye } from "lucide-react";
 import { mockProducts, Product } from "@/data/mockProducts";
 import { ProductForm } from "./ProductForm";
+import { ProductDetailsModal } from "./ProductDetailsModal";
 import { useToast } from "@/hooks/use-toast";
 
 export const ProductManagement = () => {
@@ -17,6 +18,7 @@ export const ProductManagement = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { toast } = useToast();
 
   const filteredProducts = products.filter(product =>
@@ -158,7 +160,10 @@ export const ProductManagement = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedProduct(product);
+                          setIsDetailsOpen(true);
+                        }}>
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
@@ -202,6 +207,13 @@ export const ProductManagement = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Product Details Modal */}
+      <ProductDetailsModal
+        product={selectedProduct}
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+      />
     </div>
   );
 };

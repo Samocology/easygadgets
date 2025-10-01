@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Menu, Bell, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -5,6 +6,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import adminLogo from "@/assets/admin-logo.png";
+import { ProfileSettings } from "./ProfileSettings";
+import { SettingsPanel } from "./SettingsPanel";
 
 interface AdminHeaderProps {
   onMenuToggle: () => void;
@@ -13,6 +16,8 @@ interface AdminHeaderProps {
 
 export const AdminHeader = ({ onMenuToggle, sidebarOpen }: AdminHeaderProps) => {
   const navigate = useNavigate();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuthenticated");
@@ -72,11 +77,11 @@ export const AdminHeader = ({ onMenuToggle, sidebarOpen }: AdminHeaderProps) => 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 sm:w-56">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setProfileOpen(true)}>
                 <User className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
@@ -93,6 +98,10 @@ export const AdminHeader = ({ onMenuToggle, sidebarOpen }: AdminHeaderProps) => 
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Profile and Settings Modals */}
+      <ProfileSettings open={profileOpen} onOpenChange={setProfileOpen} />
+      <SettingsPanel open={settingsOpen} onOpenChange={setSettingsOpen} />
     </header>
   );
 };
