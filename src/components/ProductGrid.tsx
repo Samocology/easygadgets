@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductCard } from "./ProductCard";
 import { ProductListCard } from "./ProductListCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { mockProducts, Product } from "@/data/mockProducts";
 import { useCart } from "@/hooks/useCart";
-import { Filter, Grid, List } from "lucide-react";
+import { productService, Product } from "@/services/productService";
+import { useToast } from "@/hooks/use-toast";
+import { Filter, Grid, List, Loader2 } from "lucide-react";
 
 interface ProductGridProps {
   searchQuery?: string;
@@ -13,28 +14,52 @@ interface ProductGridProps {
 }
 
 export const ProductGrid = ({ searchQuery = "", selectedCategory: propSelectedCategory = "All" }: ProductGridProps) => {
-  const [products] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [visibleProducts, setVisibleProducts] = useState(8);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const { addToCart } = useCart();
+  const { toast } = useToast();
 
   const categories = ["All", ...Array.from(new Set(products.map(p => p.category)))];
 
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = propSelectedCategory === "All" || product.category === propSelectedCategory;
-    const matchesSearch = searchQuery === "" || 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  useEffect(() => {
+    loadProducts();
+  }, [searchQuery, propSelectedCategory, page]);
 
-  const displayedProducts = filteredProducts.slice(0, visibleProducts);
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await productService.getProducts({
+        search: searchQuery,
+        category: propSelectedCategory === "All" ? undefined : propSelectedCategory,
+        page,
+        limit: 8,
+      });
+      
+      if (page === 1) {
+        setProducts(response.products);
+      } else {
+        setProducts(prev => [...prev, ...response.products]);
+      }
+      
+      setHasMore(response.page < response.totalPages);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadMoreProducts = () => {
-    setVisibleProducts(prev => prev + 8);
+    setPage(prev => prev + 1);
   };
 
   const handleAddToCart = (id: string) => {
@@ -128,64 +153,80 @@ export const ProductGrid = ({ searchQuery = "", selectedCategory: propSelectedCa
         </div>
 
         {/* Products Grid */}
-        <div className={`grid gap-6 ${
-          viewMode === "grid" 
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-            : "grid-cols-1"
-        }`}>
-          {displayedProducts.map((product) => (
-            viewMode === "grid" ? (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                name={product.name}
-                brand={product.brand}
-                price={product.price}
-                originalPrice={product.originalPrice}
-                rating={product.rating}
-                reviewCount={product.reviewCount}
-                image={product.image}
-                category={product.category}
-                isNew={product.isNew}
-                onAddToCart={handleAddToCart}
-                onToggleFavorite={handleToggleFavorite}
-                isFavorite={favorites.has(product.id)}
-              />
-            ) : (
-              <ProductListCard
-                key={product.id}
-                id={product.id}
-                name={product.name}
-                brand={product.brand}
-                price={product.price}
-                originalPrice={product.originalPrice}
-                rating={product.rating}
-                reviewCount={product.reviewCount}
-                image={product.image}
-                category={product.category}
-                isNew={product.isNew}
-                description={product.description}
-                features={product.features}
-                onAddToCart={handleAddToCart}
-                onToggleFavorite={handleToggleFavorite}
-                isFavorite={favorites.has(product.id)}
-              />
-            )
-          ))}
-        </div>
-
-        {/* Load More */}
-        {visibleProducts < filteredProducts.length && (
-          <div className="text-center mt-12">
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="transition-smooth hover:bg-primary hover:text-primary-foreground"
-              onClick={loadMoreProducts}
-            >
-              Load More Products ({filteredProducts.length - visibleProducts} remaining)
-            </Button>
+        {loading && page === 1 ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
+        ) : (
+          <>
+            <div className={`grid gap-6 ${
+              viewMode === "grid" 
+                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+                : "grid-cols-1"
+            }`}>
+              {products.map((product) => (
+                viewMode === "grid" ? (
+                  <ProductCard
+                    key={product.id}
+                    id={product.id}
+                    name={product.name}
+                    brand={product.brand}
+                    price={product.price}
+                    originalPrice={product.originalPrice}
+                    rating={product.rating}
+                    reviewCount={product.reviews}
+                    image={product.image}
+                    category={product.category}
+                    isNew={product.isNew}
+                    onAddToCart={handleAddToCart}
+                    onToggleFavorite={handleToggleFavorite}
+                    isFavorite={favorites.has(product.id)}
+                  />
+                ) : (
+                  <ProductListCard
+                    key={product.id}
+                    id={product.id}
+                    name={product.name}
+                    brand={product.brand}
+                    price={product.price}
+                    originalPrice={product.originalPrice}
+                    rating={product.rating}
+                    reviewCount={product.reviews}
+                    image={product.image}
+                    category={product.category}
+                    isNew={product.isNew}
+                    description={product.description}
+                    features={product.features}
+                    onAddToCart={handleAddToCart}
+                    onToggleFavorite={handleToggleFavorite}
+                    isFavorite={favorites.has(product.id)}
+                  />
+                )
+              ))}
+            </div>
+
+            {/* Load More */}
+            {hasMore && (
+              <div className="text-center mt-12">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  disabled={loading}
+                  className="transition-smooth hover:bg-primary hover:text-primary-foreground"
+                  onClick={loadMoreProducts}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Load More Products'
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

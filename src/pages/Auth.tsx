@@ -8,11 +8,16 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/hooks/useCart";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { Lock, Mail, User, Eye, EyeOff, Shield, Zap } from "lucide-react";
 
 const Auth = () => {
-  const { totalItems } = useCart();
+  const { totalItems, refreshCart } = useCart();
+  const { login, register } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loginData, setLoginData] = useState({
@@ -26,20 +31,59 @@ const Auth = () => {
     confirmPassword: ""
   });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt:", loginData);
-    navigate('/profile');
+    setLoading(true);
+    try {
+      await login(loginData.email, loginData.password);
+      await refreshCart();
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully logged in",
+      });
+      navigate('/');
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.message || "Invalid credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (signupData.password !== signupData.confirmPassword) {
-      alert("Passwords don't match!");
+      toast({
+        title: "Error",
+        description: "Passwords don't match!",
+        variant: "destructive",
+      });
       return;
     }
-    console.log("Signup attempt:", signupData);
-    navigate('/profile');
+    
+    setLoading(true);
+    try {
+      await register({
+        name: signupData.name,
+        email: signupData.email,
+        password: signupData.password,
+      });
+      toast({
+        title: "Registration successful!",
+        description: "Please check your email for OTP verification",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.message || "Unable to create account",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -126,10 +170,11 @@ const Auth = () => {
                     </div>
                     <Button 
                       type="submit" 
+                      disabled={loading}
                       className="w-full h-12 gradient-primary text-primary-foreground border-0 shadow-glow hover:shadow-glow transition-smooth font-medium"
                     >
                       <Zap className="w-4 h-4 mr-2" />
-                      Sign In
+                      {loading ? "Signing In..." : "Sign In"}
                     </Button>
                   </form>
                 </CardContent>
@@ -219,10 +264,11 @@ const Auth = () => {
                     </div>
                     <Button 
                       type="submit" 
+                      disabled={loading}
                       className="w-full h-12 gradient-primary text-primary-foreground border-0 shadow-glow hover:shadow-glow transition-smooth font-medium"
                     >
                       <Shield className="w-4 h-4 mr-2" />
-                      Create Account
+                      {loading ? "Creating Account..." : "Create Account"}
                     </Button>
                   </form>
                 </CardContent>

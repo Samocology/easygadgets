@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { authService } from "@/services/authService";
 import { Lock, Mail } from "lucide-react";
 import adminLogo from "@/assets/admin-logo.png";
 
@@ -19,23 +20,35 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Demo credentials
-    if (email === "admin@easygadgets.com" && password === "admin123") {
+    try {
+      const response = await authService.login(email, password);
+      
+      if (response.user.role !== 'admin') {
+        toast({
+          title: "Access denied",
+          description: "You don't have admin privileges",
+          variant: "destructive",
+        });
+        await authService.logout();
+        setLoading(false);
+        return;
+      }
+
       localStorage.setItem("adminAuthenticated", "true");
       toast({
         title: "Welcome back!",
         description: "Successfully logged in to admin dashboard",
       });
       navigate("/admin");
-    } else {
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "Invalid email or password",
+        description: error.message || "Invalid email or password",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -98,7 +111,7 @@ const AdminLogin = () => {
             </Button>
 
             <p className="text-xs text-center text-muted-foreground mt-4">
-              Demo: admin@easygadgets.com / admin123
+              Use your admin credentials to login
             </p>
           </form>
         </CardContent>
