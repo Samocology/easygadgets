@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
-import adminLogo from "@/assets/admin-logo.png";
 import { ProfileSettings } from "./ProfileSettings";
 import { SettingsPanel } from "./SettingsPanel";
 
@@ -38,14 +37,12 @@ export const AdminHeader = ({ onMenuToggle, sidebarOpen }: AdminHeaderProps) => 
           </Button>
           
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <img 
-              src={adminLogo} 
-              alt="Easy Gadget Store" 
-              className="h-10 sm:h-12 w-auto object-contain"
-            />
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent tracking-tight">
+              EasyGadgets
+            </h1>
             <div className="hidden sm:block">
-              <h1 className="text-base sm:text-xl font-semibold text-foreground">Admin Dashboard</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground hidden md:block">Easy Gadgets Management</p>
+              <h2 className="text-base sm:text-xl font-semibold text-foreground">Admin Dashboard</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden md:block">Management Portal</p>
             </div>
           </div>
         </div>
