@@ -14,7 +14,7 @@ import { Lock, Mail, User, Eye, EyeOff, Shield, Zap } from "lucide-react";
 
 const Auth = () => {
   const { totalItems, refreshCart } = useCart();
-  const { login, register } = useAuth();
+  const { login, register, forgotPassword } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -46,6 +46,33 @@ const Auth = () => {
       toast({
         title: "Login failed",
         description: error.message || "Invalid credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!loginData.email) {
+      toast({
+        title: "Error",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      await forgotPassword(loginData.email);
+      toast({
+        title: "Password reset email sent",
+        description: "Please check your email for instructions to reset your password.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send password reset email.",
         variant: "destructive",
       });
     } finally {
@@ -165,6 +192,15 @@ const Auth = () => {
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-smooth"
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      <div className="text-right">
+                        <button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          Forgot Password?
                         </button>
                       </div>
                     </div>

@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -44,6 +45,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const forgotPassword = async (email: string) => {
+    await authService.forgotPassword(email);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -53,6 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         register,
         logout,
+        forgotPassword,
         loading,
       }}
     >
