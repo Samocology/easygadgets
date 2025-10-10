@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://easy-gadget-backend.onrender.com/api';
+const API_BASE_URL = 'https://easy-gadget-backend-easy-gadgets-hub.up.railway.app/api';
 
 interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
