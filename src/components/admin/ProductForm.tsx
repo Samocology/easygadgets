@@ -7,12 +7,14 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus } from "lucide-react";
-import { Product } from "@/data/mockProducts";
+import { X, Plus, Upload, Image as ImageIcon } from "lucide-react";
+import { Product } from "@/services/productService";
+import { uploadService } from "@/services/uploadService";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductFormProps {
   initialData?: Product;
-  onSubmit: (data: Omit<Product, 'id'>) => void;
+  onSubmit: (formData: FormData) => void;
 }
 
 const categories = [
@@ -25,27 +27,68 @@ const categories = [
 ];
 
 export const ProductForm = ({ initialData, onSubmit }: ProductFormProps) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     brand: initialData?.brand || "",
     price: initialData?.price || 0,
     originalPrice: initialData?.originalPrice || 0,
-    rating: initialData?.rating || 0,
-    reviewCount: initialData?.reviewCount || 0,
     image: initialData?.image || "",
     category: initialData?.category || "",
     isNew: initialData?.isNew || false,
     description: initialData?.description || "",
     features: initialData?.features || [],
     inStock: initialData?.inStock ?? true,
-    stockCount: initialData?.stockCount || 0
+    stockCount: initialData?.stock || 0
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [newFeature, setNewFeature] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setUploading(true);
+
+    try {
+      let imageUrl = formData.image;
+
+      if (selectedFile) {
+        const uploadResult = await uploadService.uploadFile(selectedFile, 'image');
+        imageUrl = uploadResult.url;
+      }
+
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('brand', formData.brand);
+      submitData.append('price', formData.price.toString());
+      submitData.append('originalPrice', formData.originalPrice?.toString() || '');
+      submitData.append('category', formData.category);
+      submitData.append('description', formData.description);
+      submitData.append('features', JSON.stringify(formData.features));
+      submitData.append('inStock', formData.inStock.toString());
+      submitData.append('stock', formData.stockCount.toString());
+      submitData.append('isNew', formData.isNew.toString());
+      if (imageUrl) submitData.append('image', imageUrl);
+      if (selectedFile) submitData.append('file', selectedFile);
+
+      onSubmit(submitData);
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
   };
 
   const addFeature = () => {
@@ -116,14 +159,41 @@ export const ProductForm = ({ initialData, onSubmit }: ProductFormProps) => {
             </div>
 
             <div>
-              <Label htmlFor="image">Image URL *</Label>
-              <Input
-                id="image"
-                value={formData.image}
-                onChange={(e) => setFormData({...formData, image: e.target.value})}
-                placeholder="Enter image URL"
-                required
-              />
+              <Label htmlFor="image">Product Image *</Label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <Label
+                    htmlFor="image"
+                    className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {selectedFile ? selectedFile.name : "Choose image file"}
+                  </Label>
+                </div>
+                {selectedFile && (
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-muted-foreground">
+                      {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                  </div>
+                )}
+                {formData.image && !selectedFile && (
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm text-muted-foreground">
+                      Current image: {formData.image}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -243,8 +313,12 @@ export const ProductForm = ({ initialData, onSubmit }: ProductFormProps) => {
 
       {/* Submit Button */}
       <div className="flex justify-end space-x-2">
-        <Button type="submit" className="gradient-primary text-primary-foreground border-0 btn-glow">
-          {initialData ? "Update Product" : "Create Product"}
+        <Button
+          type="submit"
+          className="gradient-primary text-primary-foreground border-0 btn-glow"
+          disabled={uploading}
+        >
+          {uploading ? "Uploading..." : (initialData ? "Update Product" : "Create Product")}
         </Button>
       </div>
     </form>

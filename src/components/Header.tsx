@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/logo.svg";
 
 interface HeaderProps {
   cartCount?: number;
@@ -34,15 +35,17 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
           {/* Top bar */}
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div 
-              className="flex items-center cursor-pointer group" 
-              onClick={() => navigate('/')} 
-              role="button" 
+            <div
+              className="flex items-center cursor-pointer group"
+              onClick={() => navigate('/')}
+              role="button"
               aria-label="Easy Gadgets Home"
             >
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 tracking-tight">
-                EasyGadgets
-              </h1>
+              <img
+                src={logo}
+                alt="Easy Gadgets"
+                className="h-10 w-auto hover:scale-105 transition-transform duration-300"
+              />
             </div>
 
             {/* Search bar */}
@@ -113,15 +116,17 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
-            <div 
-              className="flex items-center cursor-pointer" 
-              onClick={() => navigate('/')} 
-              role="button" 
+            <div
+              className="flex items-center cursor-pointer"
+              onClick={() => navigate('/')}
+              role="button"
               aria-label="Easy Gadgets Home"
             >
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent tracking-tight">
-                EasyGadgets
-              </h1>
+              <img
+                src={logo}
+                alt="Easy Gadgets"
+                className="h-8 w-auto"
+              />
             </div>
 
             {/* Cart */}

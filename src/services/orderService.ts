@@ -12,7 +12,6 @@ export interface Order {
     street: string;
     city: string;
     state: string;
-    zipCode: string;
     country: string;
   };
   products: Array<{
@@ -25,6 +24,14 @@ export interface Order {
 }
 
 export interface CreateOrderData {
+  items: Array<{
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image: string;
+    brand: string;
+  }>;
   shippingAddress: {
     street: string;
     city: string;
@@ -32,6 +39,8 @@ export interface CreateOrderData {
     zipCode: string;
     country: string;
   };
+  paymentMethod: string;
+  total: number;
 }
 
 export const orderService = {
@@ -57,6 +66,14 @@ export const orderService = {
       method: 'PUT',
       requiresAuth: true,
       body: JSON.stringify({ status }),
+    });
+  },
+
+  async verifyPayment(reference: string): Promise<{ success: boolean; orderId?: string }> {
+    return api.request('/payments/verify', {
+      method: 'POST',
+      requiresAuth: true,
+      body: JSON.stringify({ reference }),
     });
   },
 };

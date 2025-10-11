@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Product } from "@/data/mockProducts";
+import { Product } from "@/services/productService";
 import { Package, Tag, DollarSign, Box, Calendar, Star } from "lucide-react";
 
 interface ProductDetailsModalProps {
@@ -52,7 +52,7 @@ export const ProductDetailsModal = ({ product, open, onOpenChange }: ProductDeta
                   />
                 ))}
                 <span className="ml-2 text-sm text-muted-foreground">
-                  {product.rating} ({product.reviewCount} reviews)
+                  {product.rating} ({product.reviews} reviews)
                 </span>
               </div>
 
@@ -76,7 +76,7 @@ export const ProductDetailsModal = ({ product, open, onOpenChange }: ProductDeta
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Stock Quantity</p>
-                    <p className="text-lg font-semibold">{product.stockCount} units</p>
+                    <p className="text-lg font-semibold">{product.stock} units</p>
                   </div>
                 </div>
               </CardContent>

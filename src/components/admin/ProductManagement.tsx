@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,14 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, MoreHorizontal, Edit, Trash, Eye } from "lucide-react";
-import { mockProducts, Product } from "@/data/mockProducts";
+import { Plus, Search, MoreHorizontal, Edit, Trash, Eye, Loader2 } from "lucide-react";
+import { productService, Product } from "@/services/productService";
 import { ProductForm } from "./ProductForm";
 import { ProductDetailsModal } from "./ProductDetailsModal";
 import { useToast } from "@/hooks/use-toast";
 
 export const ProductManagement = () => {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -21,49 +22,85 @@ export const ProductManagement = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await productService.getProducts();
+      setProducts(response.products);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleCreateProduct = (productData: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-      ...productData,
-      id: (products.length + 1).toString()
-    };
-    setProducts([...products, newProduct]);
-    setIsCreateDialogOpen(false);
-    toast({
-      title: "Product Created",
-      description: "New product has been added successfully.",
-    });
+  const handleCreateProduct = async (formData: FormData) => {
+    try {
+      await productService.createProduct(formData);
+      setIsCreateDialogOpen(false);
+      fetchProducts();
+      toast({
+        title: "Product Created",
+        description: "New product has been added successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create product",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleUpdateProduct = (productData: Omit<Product, 'id'>) => {
+  const handleUpdateProduct = async (formData: FormData) => {
     if (!selectedProduct) return;
-    
-    const updatedProducts = products.map(product =>
-      product.id === selectedProduct.id 
-        ? { ...productData, id: selectedProduct.id }
-        : product
-    );
-    setProducts(updatedProducts);
-    setSelectedProduct(null);
-    setIsEditDialogOpen(false);
-    toast({
-      title: "Product Updated",
-      description: "Product has been updated successfully.",
-    });
+    try {
+      await productService.updateProduct(selectedProduct.id, formData);
+      setSelectedProduct(null);
+      setIsEditDialogOpen(false);
+      fetchProducts();
+      toast({
+        title: "Product Updated",
+        description: "Product has been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    setProducts(products.filter(product => product.id !== productId));
-    toast({
-      title: "Product Deleted",
-      description: "Product has been removed successfully.",
-      variant: "destructive"
-    });
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      await productService.deleteProduct(productId);
+      fetchProducts();
+      toast({
+        title: "Product Deleted",
+        description: "Product has been removed successfully.",
+        variant: "destructive"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -140,11 +177,11 @@ export const ProductManagement = () => {
                     ₦{product.price.toLocaleString()}
                   </TableCell>
                   <TableCell>
-                    <Badge 
-                      variant={product.stockCount > 10 ? "default" : 
-                               product.stockCount > 0 ? "secondary" : "destructive"}
+                    <Badge
+                      variant={product.stock > 10 ? "default" :
+                               product.stock > 0 ? "secondary" : "destructive"}
                     >
-                      {product.stockCount} units
+                      {product.stock} units
                     </Badge>
                   </TableCell>
                   <TableCell>
