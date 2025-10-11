@@ -16,6 +16,7 @@ interface AuthContextType {
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
+  verifyOtp: (email: string, otp: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -49,6 +50,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await authService.forgotPassword(email);
   };
 
+  const verifyOtp = async (email: string, otp: string) => {
+    await authService.verifyOtp(email, otp);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -59,6 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         register,
         logout,
         forgotPassword,
+        verifyOtp,
         loading,
       }}
     >

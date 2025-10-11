@@ -14,7 +14,7 @@ import { Lock, Mail, User, Eye, EyeOff, Shield, Zap } from "lucide-react";
 
 const Auth = () => {
   const { totalItems, refreshCart } = useCart();
-  const { login, register, forgotPassword } = useAuth();
+  const { login, register, forgotPassword, verifyOtp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -30,6 +30,8 @@ const Auth = () => {
     password: "",
     confirmPassword: ""
   });
+  const [showOtpForm, setShowOtpForm] = useState(false);
+  const [otp, setOtp] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +71,7 @@ const Auth = () => {
         title: "Password reset email sent",
         description: "Please check your email for instructions to reset your password.",
       });
+      setShowOtpForm(true);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -102,10 +105,32 @@ const Auth = () => {
         title: "Registration successful!",
         description: "Please check your email for OTP verification",
       });
+      setShowOtpForm(true);
     } catch (error: any) {
       toast({
         title: "Registration failed",
         description: error.message || "Unable to create account",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await verifyOtp(signupData.email, otp);
+      toast({
+        title: "Account verified!",
+        description: "You have successfully verified your account.",
+      });
+      navigate('/');
+    } catch (error: any) {
+      toast({
+        title: "OTP verification failed",
+        description: error.message || "Invalid OTP",
         variant: "destructive",
       });
     } finally {
@@ -138,6 +163,41 @@ const Auth = () => {
           </div>
 
           {/* Auth Card */}
+          {showOtpForm ? (
+            <Card className="shadow-elevated border-0 gradient-card backdrop-blur-sm">
+              <CardHeader className="space-y-1 pb-4">
+                <CardTitle className="text-2xl font-semibold text-center">Enter OTP</CardTitle>
+                <p className="text-center text-muted-foreground">
+                  Check your email for the One-Time Password
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <form onSubmit={handleOtpSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="otp" className="text-sm font-medium">OTP</Label>
+                    <div className="relative">
+                      <Input
+                        id="otp"
+                        type="text"
+                        placeholder="Enter your OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        className="pl-10 h-12 transition-smooth focus:shadow-glow"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full h-12 gradient-primary text-primary-foreground border-0 shadow-glow hover:shadow-glow transition-smooth font-medium"
+                  >
+                    {loading ? "Verifying..." : "Verify OTP"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          ) : (
           <Card className="shadow-elevated border-0 gradient-card backdrop-blur-sm">
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50">
@@ -311,6 +371,7 @@ const Auth = () => {
               </TabsContent>
             </Tabs>
           </Card>
+          )}
 
           {/* Trust Indicators */}
           <div className="mt-8 text-center">
