@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://easy-gadget-backend.onrender.com';
+const API_BASE_URL = 'https://easy-gadget-backend.onrender.com' ;
 
 interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
