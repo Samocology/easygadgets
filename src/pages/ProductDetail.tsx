@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Star, ShoppingCart, Heart, ArrowLeft, Minus, Plus } from "lucide-react";
+import { Star, ShoppingCart, Heart, ArrowLeft, Minus, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { mockProducts } from "@/data/mockProducts";
+import { productService, Product } from "@/services/productService";
 import { useCart } from "@/hooks/useCart";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { useToast } from "@/hooks/use-toast";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -16,8 +17,42 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const product = mockProducts.find(p => p.id === id);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      try {
+        const fetchedProduct = await productService.getProductById(id);
+        setProduct(fetchedProduct);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load product",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id, toast]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header cartCount={totalItems} />
+        <div className="container mx-auto px-4 py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>Loading product...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -119,7 +154,7 @@ const ProductDetail = () => {
                   </Badge>
                 )}
                 <Badge variant="secondary" className={product.inStock ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                  {product.inStock ? `In Stock (${product.stockCount})` : "Out of Stock"}
+                  {product.inStock ? `In Stock (${product.stock})` : "Out of Stock"}
                 </Badge>
               </div>
             </div>
@@ -139,7 +174,7 @@ const ProductDetail = () => {
                 ))}
               </div>
               <span className="text-lg font-medium">{product.rating}</span>
-              <span className="text-muted-foreground">({product.reviewCount} reviews)</span>
+              <span className="text-muted-foreground">({product.reviews} reviews)</span>
             </div>
 
             {/* Price */}

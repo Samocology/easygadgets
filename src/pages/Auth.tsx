@@ -10,6 +10,7 @@ import { useCart } from "@/hooks/useCart";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { authService } from "@/services/authService";
 import { Lock, Mail, User, Eye, EyeOff, Shield, Zap } from "lucide-react";
 
 const Auth = () => {
@@ -32,6 +33,9 @@ const Auth = () => {
   });
   const [showOtpForm, setShowOtpForm] = useState(false);
   const [otp, setOtp] = useState("");
+  const [otpType, setOtpType] = useState<'signup' | 'forgot'>('signup');
+  const [newPassword, setNewPassword] = useState("");
+  const [currentEmail, setCurrentEmail] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +75,8 @@ const Auth = () => {
         title: "Password reset email sent",
         description: "Please check your email for instructions to reset your password.",
       });
+      setCurrentEmail(loginData.email);
+      setOtpType('forgot');
       setShowOtpForm(true);
     } catch (error: any) {
       toast({
@@ -105,6 +111,8 @@ const Auth = () => {
         title: "Registration successful!",
         description: "Please check your email for OTP verification",
       });
+      setCurrentEmail(signupData.email);
+      setOtpType('signup');
       setShowOtpForm(true);
     } catch (error: any) {
       toast({
@@ -121,12 +129,23 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await verifyOtp(signupData.email, otp);
-      toast({
-        title: "Account verified!",
-        description: "You have successfully verified your account.",
-      });
-      navigate('/');
+      if (otpType === 'signup') {
+        await verifyOtp(currentEmail, otp);
+        toast({
+          title: "Account verified!",
+          description: "You have successfully verified your account.",
+        });
+        navigate('/');
+      } else if (otpType === 'forgot') {
+        await authService.resetPassword(otp, newPassword);
+        toast({
+          title: "Password reset successful!",
+          description: "You can now log in with your new password.",
+        });
+        setShowOtpForm(false);
+        setOtp('');
+        setNewPassword('');
+      }
     } catch (error: any) {
       toast({
         title: "OTP verification failed",
@@ -166,9 +185,9 @@ const Auth = () => {
           {showOtpForm ? (
             <Card className="shadow-elevated border-0 gradient-card backdrop-blur-sm">
               <CardHeader className="space-y-1 pb-4">
-                <CardTitle className="text-2xl font-semibold text-center">Enter OTP</CardTitle>
+                <CardTitle className="text-2xl font-semibold text-center">{otpType === 'signup' ? 'Verify Your Account' : 'Reset Your Password'}</CardTitle>
                 <p className="text-center text-muted-foreground">
-                  Check your email for the One-Time Password
+                  {otpType === 'signup' ? 'Check your email for the One-Time Password' : 'Enter the OTP and your new password'}
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -176,23 +195,42 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label htmlFor="otp" className="text-sm font-medium">OTP</Label>
                     <div className="relative">
+                      <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="otp"
                         type="text"
-                        placeholder="Enter your OTP"
+                        placeholder="Enter 6-digit OTP"
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
                         className="pl-10 h-12 transition-smooth focus:shadow-glow"
+                        maxLength={6}
                         required
                       />
                     </div>
                   </div>
-                  <Button 
-                    type="submit" 
+                  {otpType === 'forgot' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword" className="text-sm font-medium">New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="newPassword"
+                          type="password"
+                          placeholder="Enter new password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="pl-10 h-12 transition-smooth focus:shadow-glow"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    type="submit"
                     disabled={loading}
                     className="w-full h-12 gradient-primary text-primary-foreground border-0 shadow-glow hover:shadow-glow transition-smooth font-medium"
                   >
-                    {loading ? "Verifying..." : "Verify OTP"}
+                    {loading ? (otpType === 'signup' ? "Verifying..." : "Resetting...") : (otpType === 'signup' ? "Verify OTP" : "Reset Password")}
                   </Button>
                 </form>
               </CardContent>

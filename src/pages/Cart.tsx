@@ -143,7 +143,10 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <Button className="w-full gradient-primary text-primary-foreground border-0 btn-glow">
+                <Button
+                  className="w-full gradient-primary text-primary-foreground border-0 btn-glow"
+                  onClick={() => navigate('/checkout')}
+                >
                   Proceed to Checkout
                 </Button>
                 
