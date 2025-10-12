@@ -10,18 +10,27 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/contexts/AuthContext";
+import { settingsService, UserSettings } from "@/services/settingsService";
+import { orderService, Order } from "@/services/orderService";
+import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
   const { totalItems } = useCart();
   const { user, isAuthenticated, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const [userInfo, setUserInfo] = useState({
+  const [userInfo, setUserInfo] = useState<UserSettings>({
     name: "",
     email: "",
     phone: "",
-    address: ""
+    address: "",
+    emailNotifications: false,
+    smsNotifications: false
   });
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingSettings, setLoadingSettings] = useState(false);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -31,43 +40,60 @@ const Profile = () => {
 
   useEffect(() => {
     if (user) {
-      setUserInfo({
-        name: user.name || "",
-        email: user.email || "",
-        phone: user.phone || "+234 801 234 5678", // Placeholder
-        address: user.address || "123 Lagos Street, Victoria Island, Lagos" // Placeholder
-      });
+      fetchUserSettings();
+      fetchUserOrders();
     }
   }, [user]);
-  
-  const orderHistory = [
-    {
-      id: "ORD-001",
-      date: "2024-09-20",
-      total: 479199.60,
-      status: "Delivered",
-      items: 2
-    },
-    {
-      id: "ORD-002", 
-      date: "2024-09-15",
-      total: 99799.75,
-      status: "Processing",
-      items: 1
-    },
-    {
-      id: "ORD-003",
-      date: "2024-09-10", 
-      total: 159799.60,
-      status: "Shipped",
-      items: 1
-    }
-  ];
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const fetchUserOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      const userOrders = await orderService.getMyOrders();
+      setOrders(userOrders);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const fetchUserSettings = async () => {
+    try {
+      const settings = await settingsService.getSettings();
+      setUserInfo(settings);
+    } catch (error) {
+      // If settings endpoint fails, fall back to user data
+      setUserInfo({
+        name: user?.name || "",
+        email: user?.email || "",
+        phone: user?.phone || "",
+        address: user?.address || "",
+        emailNotifications: false,
+        smsNotifications: false
+      });
+    }
+  };
+  
+
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle profile update logic here
-    console.log("Profile updated:", userInfo);
+    setLoadingSettings(true);
+    try {
+      await settingsService.updateSettings(userInfo);
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSettings(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -169,26 +195,37 @@ const Profile = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {orderHistory.map((order) => (
-                      <div key={order.id} className="border rounded-lg p-4 flex justify-between items-center">
-                        <div>
-                          <h3 className="font-semibold">{order.id}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(order.date).toLocaleDateString()} • {order.items} items
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">₦{order.total.toLocaleString('en-NG')}</p>
-                          <p className={`text-sm ${
-                            order.status === 'Delivered' ? 'text-green-600' :
-                            order.status === 'Shipped' ? 'text-blue-600' :
-                            'text-yellow-600'
-                          }`}>
-                            {order.status}
-                          </p>
-                        </div>
+                    {orders.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Package className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+                        <p className="text-muted-foreground">No orders yet.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your orders will appear here once you make a purchase.
+                        </p>
                       </div>
-                    ))}
+                    ) : (
+                      orders.map((order) => (
+                        <div key={order.id} className="border rounded-lg p-4 flex justify-between items-center">
+                          <div>
+                            <h3 className="font-semibold">{order.id}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(order.date).toLocaleDateString()} • {order.products.length} items
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">₦{order.total.toLocaleString('en-NG')}</p>
+                            <p className={`text-sm ${
+                              order.status === 'delivered' ? 'text-green-600' :
+                              order.status === 'shipped' ? 'text-blue-600' :
+                              order.status === 'processing' ? 'text-yellow-600' :
+                              'text-gray-600'
+                            }`}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -224,11 +261,30 @@ const Profile = () => {
                         Receive updates about your orders and new products
                       </p>
                     </div>
-                    <Button variant="outline" size="sm">
-                      Enable
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const newSettings = await settingsService.toggleEmailNotifications(!userInfo.emailNotifications);
+                          setUserInfo(newSettings);
+                          toast({
+                            title: "Settings Updated",
+                            description: `Email notifications ${newSettings.emailNotifications ? 'enabled' : 'disabled'}.`,
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update email notification settings.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      {userInfo.emailNotifications ? 'Disable' : 'Enable'}
                     </Button>
                   </div>
-                  
+
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                     <div>
                       <h3 className="font-semibold">SMS Notifications</h3>
@@ -236,8 +292,27 @@ const Profile = () => {
                         Get SMS updates for order status changes
                       </p>
                     </div>
-                    <Button variant="outline" size="sm">
-                      Enable
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const newSettings = await settingsService.toggleSmsNotifications(!userInfo.smsNotifications);
+                          setUserInfo(newSettings);
+                          toast({
+                            title: "Settings Updated",
+                            description: `SMS notifications ${newSettings.smsNotifications ? 'enabled' : 'disabled'}.`,
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update SMS notification settings.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      {userInfo.smsNotifications ? 'Disable' : 'Enable'}
                     </Button>
                   </div>
 
