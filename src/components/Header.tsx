@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.svg";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   cartCount?: number;
@@ -17,6 +18,15 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const handleProfileClick = () => {
+    if (isAuthenticated) {
+      navigate('/profile');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   const categories = [
     { name: "Smartphones", icon: Smartphone },
@@ -69,7 +79,7 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={() => navigate('/auth')}
+                onClick={handleProfileClick}
               >
                 <User className="h-5 w-5" />
               </Button>
@@ -235,7 +245,7 @@ export const Header = ({ cartCount = 0, onSearchChange, onCategorySelect }: Head
           </button>
 
           <button
-            onClick={() => navigate('/auth')}
+            onClick={handleProfileClick}
             className="flex flex-col items-center justify-center space-y-1 text-muted-foreground hover:text-primary transition-colors"
           >
             <User className="h-5 w-5" />
