@@ -43,11 +43,8 @@ const Auth = () => {
     try {
       await login(loginData.email, loginData.password);
       await refreshCart();
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in",
-      });
-      navigate('/');
+
+      navigate('/profile');
     } catch (error: any) {
       toast({
         title: "Login failed",
@@ -107,10 +104,7 @@ const Auth = () => {
         email: signupData.email,
         password: signupData.password,
       });
-      toast({
-        title: "Registration successful!",
-        description: "Please check your email for OTP verification",
-      });
+
       setCurrentEmail(signupData.email);
       setOtpType('signup');
       setShowOtpForm(true);
@@ -135,7 +129,7 @@ const Auth = () => {
           title: "Account verified!",
           description: "You have successfully verified your account.",
         });
-        navigate('/');
+        navigate('/profile');
       } else if (otpType === 'forgot') {
         await authService.resetPassword(otp, newPassword);
         toast({

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { User, Settings, Heart, Package, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,16 +9,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/hooks/useCart";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Profile = () => {
   const { totalItems } = useCart();
+  const { user, isAuthenticated, loading, logout } = useAuth();
+  const navigate = useNavigate();
+
   const [userInfo, setUserInfo] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+234 801 234 5678",
-    address: "123 Lagos Street, Victoria Island, Lagos"
+    name: "",
+    email: "",
+    phone: "",
+    address: ""
   });
 
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate("/auth");
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      setUserInfo({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "+234 801 234 5678", // Placeholder
+        address: user.address || "123 Lagos Street, Victoria Island, Lagos" // Placeholder
+      });
+    }
+  }, [user]);
+  
   const orderHistory = [
     {
       id: "ORD-001",
@@ -47,6 +69,20 @@ const Profile = () => {
     // Handle profile update logic here
     console.log("Profile updated:", userInfo);
   };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
+
+  if (loading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        {/* You can add a spinner here */}
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -98,7 +134,7 @@ const Profile = () => {
                           id="email"
                           type="email"
                           value={userInfo.email}
-                          onChange={(e) => setUserInfo({...userInfo, email: e.target.value})}
+                          readOnly // Email should not be editable
                         />
                       </div>
                       <div>
@@ -206,7 +242,7 @@ const Profile = () => {
                   </div>
 
                   <div className="border-t pt-4">
-                    <Button variant="destructive" className="w-full">
+                    <Button variant="destructive" className="w-full" onClick={handleLogout}>
                       <LogOut className="h-4 w-4 mr-2" />
                       Sign Out
                     </Button>
