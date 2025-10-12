@@ -7,6 +7,8 @@ interface User {
   email: string;
   name: string;
   role: string;
+  phone?: string;
+  address?: string;
 }
 
 interface AuthContextType {
@@ -35,18 +37,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string, isNewUser = false) => {
     const response = await authService.login(email, password);
+    if (!response.user) {
+      throw new Error("Login failed: Invalid response from server");
+    }
     setUser(response.user);
     if (isNewUser) {
-      toast(`Welcome, ${response.user.name}!`);
+      toast(`Welcome, ${response.user?.name}!`);
     } else {
-      toast(`Welcome Back, ${response.user.name}!`);
+      toast(`Welcome Back, ${response.user?.name}!`);
     }
     return response.user;
   };
 
   const register = async (data: any) => {
     await authService.register(data);
-    await login(data.email, data.password, true);
   };
 
   const logout = async () => {
