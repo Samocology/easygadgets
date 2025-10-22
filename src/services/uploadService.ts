@@ -6,14 +6,7 @@ export const uploadService = {
     formData.append('file', file);
     formData.append('type', type);
 
-    return api.request('/upload', {
-      method: 'POST',
-      requiresAuth: true,
-      body: formData,
-      headers: {
-        // Don't set Content-Type, let browser set it with boundary
-      },
-    });
+    return api.uploadFile('/upload', formData);
   },
 
   async uploadMultipleFiles(files: File[], type: 'image' | 'video' = 'image'): Promise<{ urls: string[] }> {
@@ -23,13 +16,6 @@ export const uploadService = {
     });
     formData.append('type', type);
 
-    return api.request('/upload/multiple', {
-      method: 'POST',
-      requiresAuth: true,
-      body: formData,
-      headers: {
-        // Don't set Content-Type
-      },
-    });
+    return api.uploadFile('/upload/multiple', formData);
   },
 };

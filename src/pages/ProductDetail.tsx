@@ -67,16 +67,20 @@ const ProductDetail = () => {
     );
   }
 
-  const discountPercentage = product.originalPrice 
+    const discountPercentage = product.originalPrice 
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
-  const productImages = [
-    product.image,
-    "https://images.unsplash.com/photo-1588508065123-287b28e013da?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500&h=500&fit=crop"
-  ];
+  // Use product images if available, otherwise use the main image
+  const productImages = product.images && product.images.length > 0 
+    ? product.images 
+    : product.image 
+    ? [product.image] 
+    : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop'];
+
+    const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop';
+  };
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -107,10 +111,11 @@ const ProductDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-lg bg-muted">
+                        <div className="aspect-square overflow-hidden rounded-lg bg-muted">
               <img
                 src={productImages[selectedImage]}
                 alt={product.name}
+                onError={handleImageError}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -123,9 +128,10 @@ const ProductDetail = () => {
                     selectedImage === index ? "border-primary" : "border-muted"
                   }`}
                 >
-                  <img
+                                    <img
                     src={image}
                     alt={`${product.name} ${index + 1}`}
+                    onError={handleImageError}
                     className="w-full h-full object-cover"
                   />
                 </button>
@@ -133,7 +139,7 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Product Info */}
+                    {/* Product Info */}
           <div className="space-y-6">
             <div>
               <p className="text-sm text-muted-foreground uppercase tracking-wide">
@@ -194,17 +200,19 @@ const ProductDetail = () => {
             {/* Description */}
             <p className="text-muted-foreground text-lg">{product.description}</p>
 
-            {/* Features */}
-            <div>
-              <h3 className="font-semibold mb-3">Key Features:</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {product.features.map((feature, index) => (
-                  <Badge key={index} variant="secondary" className="justify-start">
-                    {feature}
-                  </Badge>
-                ))}
+                        {/* Features */}
+            {product.features && product.features.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3">Key Features:</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {product.features.map((feature, index) => (
+                    <Badge key={index} variant="secondary" className="justify-start">
+                      {feature}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity and Actions */}
             <Card>

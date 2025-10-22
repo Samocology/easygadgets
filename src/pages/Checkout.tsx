@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { orderService } from "@/services/orderService";
+import { paymentService } from "@/services/paymentService";
+import { systemSettingsService, SystemSettings } from "@/services/systemSettingsService";
 
 const Checkout = () => {
   const { items, totalItems, totalPrice, clearCart } = useCart();
@@ -30,9 +32,23 @@ const Checkout = () => {
 
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<SystemSettings | null>(null);
 
-  const shipping = 2500;
-  const tax = totalPrice * 0.075;
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const data = await systemSettingsService.getSystemSettings();
+        setSettings(data);
+      } catch (error) {
+        console.error('Failed to fetch settings:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const shipping = settings ? parseFloat(settings.shippingFee) : 2500;
+  const taxRate = settings ? parseFloat(settings.taxRate) / 100 : 0.075;
+  const tax = totalPrice * taxRate;
   const grandTotal = totalPrice + shipping + tax;
 
   const handleShippingChange = (field: string, value: string) => {
@@ -46,37 +62,28 @@ const Checkout = () => {
     try {
       // Create order
       const orderData = {
-        items: items.map(item => ({
-          productId: item.id,
-          name: item.name,
-          price: item.price,
+        products: items.map(item => ({
+          product: item.productId,
           quantity: item.quantity,
-          image: item.image,
-          brand: item.brand
         })),
         shippingAddress: {
-          street: shippingInfo.address,
+          address: shippingInfo.address,
           city: shippingInfo.city,
-          state: shippingInfo.state,
-          zipCode: shippingInfo.zipCode,
+          postalCode: shippingInfo.zipCode,
           country: "Nigeria"
         },
         paymentMethod,
-        total: grandTotal
       };
 
-      const order = await orderService.createOrder(orderData);
+      console.log('Creating order with data:', orderData);
+      const order = await orderService.createOrder(orderData as any);
+      console.log('Order created:', order);
 
-      // Initiate payment with Paystack
-      const paymentData = {
-        email: shippingInfo.email,
-        amount: grandTotal * 100, // Paystack expects kobo
-        reference: order.id,
-        callback_url: `${window.location.origin}/payment/success`
-      };
+      // Initiate payment with Monnify
+      const paymentResponse = await paymentService.initiatePayment(order._id, paymentMethod);
 
       // Redirect to payment page
-      window.location.href = `https://paystack.com/pay/${order.id}`;
+      window.location.href = paymentResponse.authorization_url;
 
     } catch (error: any) {
       toast({

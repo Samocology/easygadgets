@@ -102,7 +102,10 @@ const Cart = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => removeFromCart(item.id)}
+                            onClick={() => {
+                              console.log('Removing item:', item.id);
+                              removeFromCart(item.id);
+                            }}
                             className="text-red-500 hover:text-red-700 h-8 w-8"
                           >
                             <Trash2 className="h-3 w-3" />

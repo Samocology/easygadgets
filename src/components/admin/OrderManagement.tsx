@@ -1,67 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, MoreHorizontal, Eye, Truck, CheckCircle, XCircle } from "lucide-react";
+import { Search, MoreHorizontal, Eye, Truck, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OrderDetailsModal } from "./OrderDetailsModal";
-
-interface Order {
-  id: string;
-  customer: string;
-  email: string;
-  products: { name: string; quantity: number; price: number }[];
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  date: string;
-  shippingAddress: string;
-}
-
-const mockOrders: Order[] = [
-  {
-    id: "ORD-001",
-    customer: "John Doe",
-    email: "john@example.com",
-    products: [{ name: "iPhone 15 Pro Max", quantity: 1, price: 479199.60 }],
-    total: 479199.60,
-    status: "delivered",
-    date: "2024-01-15",
-    shippingAddress: "123 Main St, Lagos, Nigeria"
-  },
-  {
-    id: "ORD-002", 
-    customer: "Jane Smith",
-    email: "jane@example.com",
-    products: [{ name: "MacBook Air M3", quantity: 1, price: 439199.60 }],
-    total: 439199.60,
-    status: "shipped",
-    date: "2024-01-14",
-    shippingAddress: "456 Oak Ave, Abuja, Nigeria"
-  },
-  {
-    id: "ORD-003",
-    customer: "Mike Johnson", 
-    email: "mike@example.com",
-    products: [{ name: "AirPods Pro", quantity: 2, price: 99799.75 }],
-    total: 199599.50,
-    status: "processing",
-    date: "2024-01-13",
-    shippingAddress: "789 Pine Rd, Kano, Nigeria"
-  },
-  {
-    id: "ORD-004",
-    customer: "Sarah Wilson",
-    email: "sarah@example.com", 
-    products: [{ name: "Samsung Galaxy S24", quantity: 1, price: 479199.60 }],
-    total: 479199.60,
-    status: "pending",
-    date: "2024-01-12",
-    shippingAddress: "321 Elm St, Ibadan, Nigeria"
-  }
-];
+import { orderService, Order } from "@/services/orderService";
+import { useToast } from "@/hooks/use-toast";
 
 const statusColors = {
   pending: "secondary",
@@ -80,26 +28,65 @@ const statusIcons = {
 };
 
 export const OrderManagement = () => {
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const data = await orderService.getAllOrders();
+        if (Array.isArray(data)) {
+          setOrders(data);
+        } else {
+          setError("Failed to fetch orders: Invalid data format from server.");
+        }
+      } catch (err) {
+        setError("Failed to fetch orders. Please try again later.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         order.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         order.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const searchString = searchQuery.toLowerCase();
+    const matchesSearch = (order.id?.toLowerCase() || '').includes(searchString) ||
+                         (order.customerName?.toLowerCase() || '').includes(searchString) ||
+                         (order.customerEmail?.toLowerCase() || '').includes(searchString);
+
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
-  const updateOrderStatus = (orderId: string, newStatus: Order['status']) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
+  const updateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      await orderService.updateOrderStatus(orderId, newStatus);
+      setOrders(orders.map(order =>
+        order.id === orderId ? { ...order, status: newStatus } : order
+      ));
+      toast({
+        title: "Status Updated",
+        description: `Order ${orderId} status updated to ${newStatus}`,
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to update order status. Please try again.",
+        variant: "destructive",
+      });
+      console.error(err);
+    }
   };
 
   return (
@@ -183,13 +170,13 @@ export const OrderManagement = () => {
                     <TableCell className="font-medium">{order.id}</TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{order.customer}</p>
-                        <p className="text-sm text-muted-foreground">{order.email}</p>
+                        <p className="font-medium">{order.customerName}</p>
+                        <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        {order.products.map((product, idx) => (
+                        {Array.isArray(order.products) && order.products.map((product, idx) => (
                           <div key={idx} className="text-sm">
                             {product.name} x{product.quantity}
                           </div>
@@ -252,6 +239,20 @@ export const OrderManagement = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="flex items-center justify-center h-64">
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
 
       {/* Order Details Modal */}
       <OrderDetailsModal

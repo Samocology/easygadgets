@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Phone, MapPin, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { adminService, AdminProfile } from "@/services/adminService";
 
 interface ProfileSettingsProps {
   open: boolean;
@@ -16,20 +17,67 @@ interface ProfileSettingsProps {
 
 export const ProfileSettings = ({ open, onOpenChange }: ProfileSettingsProps) => {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [formData, setFormData] = useState({
-    name: "Admin User",
-    email: "admin@easygadgets.com",
-    phone: "+234 123 456 7890",
-    address: "Lagos, Nigeria",
-    bio: "Store Administrator"
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    bio: ""
   });
 
-  const handleSave = () => {
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been updated successfully.",
-    });
-    onOpenChange(false);
+  useEffect(() => {
+    if (open) {
+      fetchProfile();
+    }
+  }, [open]);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const profileData = await adminService.getProfile();
+      setProfile(profileData);
+      setFormData({
+        name: profileData.name || "",
+        email: profileData.email || "",
+        phone: "",
+        address: "",
+        bio: ""
+      });
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile data.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      await adminService.updateProfile({
+        name: formData.name,
+        email: formData.email,
+      });
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

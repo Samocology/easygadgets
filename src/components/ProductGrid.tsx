@@ -27,8 +27,15 @@ export const ProductGrid = ({ searchQuery = "", selectedCategory: propSelectedCa
   const categories = ["All", ...Array.from(new Set(products.map(p => p.category)))];
 
   useEffect(() => {
+    setPage(1); // Reset page when filters change
     loadProducts();
-  }, [searchQuery, propSelectedCategory, page]);
+  }, [searchQuery, propSelectedCategory]);
+
+  useEffect(() => {
+    if (page > 1) {
+      loadProducts();
+    }
+  }, [page]);
 
   const loadProducts = async () => {
     try {
@@ -37,7 +44,7 @@ export const ProductGrid = ({ searchQuery = "", selectedCategory: propSelectedCa
         search: searchQuery,
         category: propSelectedCategory === "All" ? undefined : propSelectedCategory,
         page,
-        limit: 8,
+        limit: 12,
       });
       
       if (page === 1) {

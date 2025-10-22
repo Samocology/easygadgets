@@ -40,15 +40,20 @@ export const ProductCard = ({
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop';
+  };
+
   return (
     <Card className="product-card border-0 shadow-card gradient-card overflow-hidden group cursor-pointer">
       <CardContent className="p-0">
         <div onClick={() => navigate(`/product/${id}`)}>
           {/* Image container */}
           <div className="relative overflow-hidden">
-            <img
-              src={image}
+                        <img
+              src={image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop'}
               alt={name}
+              onError={handleImageError}
               className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
             />
             

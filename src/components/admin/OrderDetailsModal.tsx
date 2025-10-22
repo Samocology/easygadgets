@@ -3,28 +3,52 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, User, Mail, Phone, Package, Calendar, DollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import { systemSettingsService, SystemSettings } from "@/services/systemSettingsService";
 
 interface OrderDetailsModalProps {
   order: {
     id: string;
-    customer: string;
-    email: string;
+    customerName: string;
+    customerEmail: string;
     products: { name: string; quantity: number; price: number }[];
     total: number;
     status: string;
     date: string;
-    shippingAddress: string;
+    shippingAddress: {
+      street: string;
+      city: string;
+      state: string;
+      country: string;
+    };
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export const OrderDetailsModal = ({ order, open, onOpenChange }: OrderDetailsModalProps) => {
+  const [settings, setSettings] = useState<SystemSettings | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      const fetchSettings = async () => {
+        try {
+          const data = await systemSettingsService.getSystemSettings();
+          setSettings(data);
+        } catch (error) {
+          console.error('Failed to fetch settings:', error);
+        }
+      };
+      fetchSettings();
+    }
+  }, [open]);
+
   if (!order) return null;
 
   const subtotal = order.products.reduce((sum, p) => sum + (p.price * p.quantity), 0);
-  const tax = subtotal * 0.075;
-  const shipping = 2000;
+  const taxRate = settings ? parseFloat(settings.taxRate) / 100 : 0.075;
+  const tax = subtotal * taxRate;
+  const shipping = settings ? parseFloat(settings.shippingFee) : 2000;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,14 +101,14 @@ export const OrderDetailsModal = ({ order, open, onOpenChange }: OrderDetailsMod
                     <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="text-sm text-muted-foreground">Customer</p>
-                      <p className="font-semibold">{order.customer}</p>
+                      <p className="font-semibold">{order.customerName}</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
                     <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-semibold text-sm">{order.email}</p>
+                      <p className="font-semibold text-sm">{order.customerEmail}</p>
                     </div>
                   </div>
                 </div>
@@ -99,7 +123,7 @@ export const OrderDetailsModal = ({ order, open, onOpenChange }: OrderDetailsMod
                 <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Shipping Address</p>
-                  <p className="font-medium">{order.shippingAddress}</p>
+                  <p className="font-medium">{`${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state}, ${order.shippingAddress.country}`}</p>
                 </div>
               </div>
             </CardContent>
@@ -139,7 +163,7 @@ export const OrderDetailsModal = ({ order, open, onOpenChange }: OrderDetailsMod
                   <span>₦{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax (7.5%)</span>
+                  <span className="text-muted-foreground">Tax ({settings ? settings.taxRate : '7.5'}%)</span>
                   <span>₦{tax.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">

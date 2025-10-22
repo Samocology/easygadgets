@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { systemSettingsService, SystemSettings } from "@/services/systemSettingsService";
+import { Loader2 } from "lucide-react";
 
 interface SettingsPanelProps {
   open: boolean;
@@ -16,7 +18,7 @@ interface SettingsPanelProps {
 
 export const SettingsPanel = ({ open, onOpenChange }: SettingsPanelProps) => {
   const { toast } = useToast();
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SystemSettings>({
     storeName: "Easy Gadgets",
     currency: "NGN",
     taxRate: "7.5",
@@ -27,13 +29,49 @@ export const SettingsPanel = ({ open, onOpenChange }: SettingsPanelProps) => {
     autoBackup: true,
     maintenanceMode: false
   });
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    toast({
-      title: "Settings Updated",
-      description: "Your settings have been saved successfully.",
-    });
-    onOpenChange(false);
+  useEffect(() => {
+    if (open) {
+      fetchSettings();
+    }
+  }, [open]);
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      const data = await systemSettingsService.getSystemSettings();
+      setSettings(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load settings. Using default values.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      await systemSettingsService.updateSystemSettings(settings);
+      toast({
+        title: "Settings Updated",
+        description: "Your settings have been saved successfully.",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -189,8 +227,13 @@ export const SettingsPanel = ({ open, onOpenChange }: SettingsPanelProps) => {
         </Tabs>
 
         <div className="flex justify-end space-x-2 mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave}>Save Settings</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving || loading}>
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {saving ? "Saving..." : "Save Settings"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

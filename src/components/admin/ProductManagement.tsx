@@ -28,8 +28,14 @@ export const ProductManagement = () => {
 
   const fetchProducts = async () => {
     try {
+      setLoading(true);
       const response = await productService.getProducts();
-      setProducts(response.products);
+      if (response && Array.isArray(response.products)) {
+        setProducts(response.products);
+      } else {
+        setProducts([]);
+        console.error("Invalid data format from getProducts API");
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -42,10 +48,36 @@ export const ProductManagement = () => {
   };
 
   const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.toLowerCase())
+    (product.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+    (product.brand?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+    (product.category?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Product Management</h2>
+            <p className="text-muted-foreground">Manage your store's product catalog</p>
+          </div>
+        </div>
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle>All Products</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading products...</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleCreateProduct = async (formData: FormData) => {
     try {
@@ -68,7 +100,7 @@ export const ProductManagement = () => {
   const handleUpdateProduct = async (formData: FormData) => {
     if (!selectedProduct) return;
     try {
-      await productService.updateProduct(selectedProduct.id, formData);
+      await productService.updateProduct(selectedProduct._id, formData);
       setSelectedProduct(null);
       setIsEditDialogOpen(false);
       fetchProducts();
@@ -157,74 +189,80 @@ export const ProductManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <img 
-                        src={product.image} 
-                        alt={product.name} 
-                        className="h-12 w-12 rounded-lg object-cover"
-                      />
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">{product.brand}</p>
+              {filteredProducts.map((product) => {
+                return (
+                  <TableRow key={product._id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src={(product.images && product.images[0]) || ''} 
+                          alt={product.name || 'Product Image'} 
+                          className="h-12 w-12 rounded-lg object-cover"
+                        />
+                        <div>
+                          <p className="font-medium">{product.name || 'N/A'}</p>
+                          <p className="text-sm text-muted-foreground">{product.brand || 'N/A'}</p>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell className="font-medium">
-                    ₦{product.price.toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={product.stock > 10 ? "default" :
-                               product.stock > 0 ? "secondary" : "destructive"}
-                    >
-                      {product.stock} units
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={product.inStock ? "default" : "destructive"}>
-                      {product.inStock ? "In Stock" : "Out of Stock"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProduct(product);
-                          setIsDetailsOpen(true);
-                        }}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => {
+                    </TableCell>
+                    <TableCell>{product.category || 'N/A'}</TableCell>
+                    <TableCell className="font-medium">
+                      ₦{typeof product.price === 'number' ? product.price.toLocaleString() : '0'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={product.stock > 10 ? "default" :
+                                 product.stock > 0 ? "secondary" : "destructive"}
+                      >
+                        {product.stock || 0} units
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={product.inStock ? "default" : "destructive"}>
+                        {product.inStock ? "In Stock" : "Out of Stock"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
                             setSelectedProduct(product);
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Product
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="text-destructive"
-                        >
-                          <Trash className="h-4 w-4 mr-2" />
-                          Delete Product
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                            setIsDetailsOpen(true);
+                          }}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                                                      onClick={async () => {
+                                                        try {
+                                                          const fullProduct = await productService.getProductById(product._id);
+                                                          setSelectedProduct(fullProduct);
+                                                          setIsEditDialogOpen(true);
+                                                        } catch (error) {
+                                                          toast({ title: "Error", description: "Failed to fetch product details.", variant: "destructive" });
+                                                        }
+                                                      }}                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Product
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteProduct(product._id)}
+                            className="text-destructive"
+                          >
+                            <Trash className="h-4 w-4 mr-2" />
+                            Delete Product
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
