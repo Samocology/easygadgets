@@ -1,6 +1,7 @@
 import { api } from '@/lib/api';
 
 export interface Order {
+  _id: string;
   id: string;
   userId: string;
   customerName: string;
@@ -24,13 +25,12 @@ export interface Order {
 }
 
 export interface CreateOrderData {
-  items: Array<{
-    productId: string;
+  products: Array<{
+    id: string;
     name: string;
     price: number;
     quantity: number;
     image: string;
-    brand: string;
   }>;
   shippingAddress: {
     street: string;
@@ -59,6 +59,10 @@ export const orderService = {
   async getAllOrders(status?: string): Promise<Order[]> {
     const params = status ? `?status=${status}` : '';
     return api.request(`/orders${params}`, { requiresAuth: true });
+  },
+
+  async getOrderById(orderId: string): Promise<Order> {
+    return api.request(`/orders/${orderId}`, { requiresAuth: true });
   },
 
   async updateOrderStatus(orderId: string, status: string): Promise<Order> {

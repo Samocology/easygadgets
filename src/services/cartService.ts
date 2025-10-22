@@ -29,16 +29,16 @@ export const cartService = {
     });
   },
 
-  async updateCartItem(productId: string, quantity: number): Promise<Cart> {
-    return api.request(`/cart/item/${productId}`, {
+  async updateCartItem(itemId: string, quantity: number): Promise<Cart> {
+    return api.request(`/cart/item/${itemId}`, {
       method: 'PUT',
       requiresAuth: true,
       body: JSON.stringify({ quantity }),
     });
   },
 
-  async removeFromCart(productId: string): Promise<Cart> {
-    return api.request(`/cart/item/${productId}`, {
+  async removeFromCart(itemId: string): Promise<Cart> {
+    return api.request(`/cart/item/${itemId}`, {
       method: 'DELETE',
       requiresAuth: true,
     });
@@ -46,8 +46,9 @@ export const cartService = {
 
   async clearCart(): Promise<{ message: string }> {
     const cart = await this.getCart();
-    for (const item of cart.items) {
-      await this.removeFromCart(item.productId);
+    for (const item of cart.items as any[]) {
+      // Pass the correct productId from the nested product object
+      await this.removeFromCart(item.product._id);
     }
     return { message: 'Cart cleared' };
   },

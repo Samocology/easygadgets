@@ -35,14 +35,17 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
+      console.log('Fetching products with filters:', { search, category });
       setLoading(true);
       const filters: ProductFilters = {};
       if (search) filters.search = search;
       if (category !== "All") filters.category = category;
 
       const response: ProductListResponse = await productService.getProducts(filters);
+      console.log('Products response:', response);
       setProducts(response.products);
     } catch (error) {
+      console.error('Error fetching products:', error);
       toast({
         title: "Error",
         description: "Failed to load products",

@@ -21,8 +21,7 @@ const PaymentSuccess = () => {
 
   useEffect(() => {
     const verifyPayment = async () => {
-      const reference = searchParams.get('reference');
-      const trxref = searchParams.get('trxref');
+      const reference = searchParams.get('paymentReference');
 
       if (!reference) {
         setVerifying(false);

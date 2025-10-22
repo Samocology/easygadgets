@@ -44,15 +44,20 @@ export const ProductListCard = ({
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop';
+  };
+
   return (
     <Card className="product-card border-0 shadow-card gradient-card overflow-hidden group cursor-pointer">
       <CardContent className="p-0">
         <div className="flex flex-col sm:flex-row" onClick={() => navigate(`/product/${id}`)}>
           {/* Image container */}
           <div className="relative sm:w-64 h-48 sm:h-auto overflow-hidden">
-            <img
-              src={image}
+                        <img
+              src={image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop'}
               alt={name}
+              onError={handleImageError}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             
@@ -102,14 +107,16 @@ export const ProductListCard = ({
               </p>
             </div>
 
-            {/* Features */}
-            <div className="flex flex-wrap gap-1">
-              {features.slice(0, 3).map((feature, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {feature}
-                </Badge>
-              ))}
-            </div>
+                        {/* Features */}
+            {features && features.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {features.slice(0, 3).map((feature, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {feature}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {/* Rating */}
             <div className="flex items-center gap-2">

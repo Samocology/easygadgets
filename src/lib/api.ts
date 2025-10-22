@@ -14,7 +14,7 @@ export class ApiError extends Error {
 export const api = {
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const { requiresAuth = false, ...fetchOptions } = options;
-    
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...fetchOptions.headers,
@@ -27,17 +27,31 @@ export const api = {
       }
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...fetchOptions,
-      headers,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Request failed' }));
-      throw new ApiError(response.status, error.message || 'Request failed');
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...fetchOptions,
+        headers,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Request failed' }));
+        throw new ApiError(response.status, error.message || 'Request failed');
+      }
+
+      return response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new ApiError(408, 'Request timeout - please try again');
+      }
+      throw error;
     }
-
-    return response.json();
   },
 
   async uploadFile(endpoint: string, formData: FormData): Promise<any> {

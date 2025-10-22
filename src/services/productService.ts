@@ -1,7 +1,8 @@
 import { api } from '@/lib/api';
 
 export interface Product {
-  id: string;
+  _id: string;
+  id?: string;
   name: string;
   brand: string;
   price: number;
@@ -46,21 +47,66 @@ export const productService = {
         params.append(key, value.toString());
       }
     });
-    
+
     const queryString = params.toString();
-    return api.request(`/products${queryString ? `?${queryString}` : ''}`);
+    const response = await api.request<ProductListResponse>(`/products${queryString ? `?${queryString}` : ''}`);
+
+    // Normalize products to ensure category is always a string, image is set, and inStock is based on stock
+    const normalizedProducts = response.products.map(product => ({
+      ...product,
+      id: product._id,
+      category: typeof product.category === 'object' && product.category !== null
+        ? (product.category as any).name || ''
+        : (product.category || ''),
+      image: product.image || (product.images && product.images.length > 0 ? product.images[0] : ''),
+      inStock: product.stock > 0
+    }));
+
+    return {
+      ...response,
+      products: normalizedProducts
+    };
   },
 
   async getProductById(id: string): Promise<Product> {
-    return api.request(`/products/${id}`);
+    const product = await api.request<Product>(`/products/${id}`);
+
+    // Normalize category to string, ensure image is set, and set inStock based on stock
+    return {
+      ...product,
+      id: product._id,
+      category: typeof product.category === 'object' && product.category !== null
+        ? (product.category as any).name || ''
+        : (product.category || ''),
+      image: product.image || (product.images && product.images.length > 0 ? product.images[0] : ''),
+      inStock: product.stock > 0
+    };
   },
 
   async createProduct(productData: FormData): Promise<Product> {
-    return api.uploadFile('/products', productData);
+    const product = await api.uploadFile('/products', productData);
+    return {
+      ...product,
+      id: product._id,
+      category: typeof product.category === 'object' && product.category !== null
+        ? (product.category as any).name || ''
+        : (product.category as string || ''),
+      image: product.image || (product.images && product.images.length > 0 ? product.images[0] : ''),
+      inStock: product.stock > 0
+    };
   },
 
   async updateProduct(id: string, productData: FormData): Promise<Product> {
-    return api.uploadFile(`/products/${id}`, productData);
+    const product = await api.uploadFile(`/products/${id}`, productData);
+    return {
+      ...product,
+      id: product._id,
+      category: typeof product.category === 'object' && product.category !== null
+        ? (product.category as any).name || ''
+        : (product.category as string || ''),
+      image: product.image || (product.images && product.images.length > 0 ? product.images[0] : ''),
+      inStock: product.stock > 0
+    };
   },
 
   async deleteProduct(id: string): Promise<{ message: string }> {

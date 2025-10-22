@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, Bell, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { ProfileSettings } from "./ProfileSettings";
 import { SettingsPanel } from "./SettingsPanel";
+import { NotificationDropdown } from "./NotificationDropdown";
+import { adminService, AdminProfile } from "@/services/adminService";
+import { notificationService } from "@/services/notificationService";
 
 interface AdminHeaderProps {
   onMenuToggle: () => void;
@@ -17,6 +20,39 @@ export const AdminHeader = ({ onMenuToggle, sidebarOpen }: AdminHeaderProps) => 
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [profile, setProfile] = useState<AdminProfile | null>(null);
+
+  useEffect(() => {
+    // Fetch admin profile
+    const fetchProfile = async () => {
+      try {
+        const profileData = await adminService.getProfile();
+        setProfile(profileData);
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      }
+    };
+
+    fetchProfile();
+
+    // Initial fetch of unread count
+    const fetchUnreadCount = async () => {
+      try {
+        const data = await notificationService.getNotifications(1, 1);
+        setUnreadCount(data.unreadCount || 0);
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Set up polling for real-time updates (every 30 seconds)
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuthenticated");
@@ -49,15 +85,10 @@ export const AdminHeader = ({ onMenuToggle, sidebarOpen }: AdminHeaderProps) => 
 
         <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative h-8 w-8 sm:h-10 sm:w-10">
-            <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center p-0 text-[10px] sm:text-xs"
-            >
-              3
-            </Badge>
-          </Button>
+          <NotificationDropdown
+            unreadCount={unreadCount}
+            onUnreadCountChange={setUnreadCount}
+          />
 
           {/* Profile Dropdown */}
           <DropdownMenu>
@@ -68,8 +99,8 @@ export const AdminHeader = ({ onMenuToggle, sidebarOpen }: AdminHeaderProps) => 
                   <AvatarFallback className="text-xs sm:text-sm">AD</AvatarFallback>
                 </Avatar>
                 <div className="text-left hidden lg:block">
-                  <p className="text-sm font-medium">Admin User</p>
-                  <p className="text-xs text-muted-foreground">admin@easygadgets.com</p>
+                  <p className="text-sm font-medium">{profile?.name || "Admin User"}</p>
+                  <p className="text-xs text-muted-foreground">{profile?.email || "admin@easygadgets.com"}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>

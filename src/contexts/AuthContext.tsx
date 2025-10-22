@@ -30,9 +30,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
-    setLoading(false);
+    try {
+      const currentUser = authService.getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Failed to get current user:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const login = async (email: string, password: string, isNewUser = false) => {

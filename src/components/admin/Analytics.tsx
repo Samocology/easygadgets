@@ -1,47 +1,47 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Users, ShoppingBag, DollarSign, Eye } from "lucide-react";
-
-const analyticsData = {
-  revenue: {
-    current: 2456789,
-    previous: 2102450,
-    change: 16.9
-  },
-  orders: {
-    current: 1247,
-    previous: 1089,
-    change: 14.5
-  },
-  customers: {
-    current: 8543,
-    previous: 7892,
-    change: 8.2
-  },
-  pageViews: {
-    current: 45672,
-    previous: 42150,
-    change: 8.4
-  }
-};
-
-const topProducts = [
-  { name: "iPhone 15 Pro Max", sales: 156, revenue: 74715036 },
-  { name: "MacBook Air M3", sales: 89, revenue: 39088824 },
-  { name: "AirPods Pro", sales: 234, revenue: 23345143 },
-  { name: "Samsung Galaxy S24", sales: 98, revenue: 46961561 },
-  { name: "Sony WH-1000XM5", sales: 167, revenue: 26686894 }
-];
-
-const recentActivity = [
-  { type: "order", message: "New order #ORD-157 received", time: "2 minutes ago" },
-  { type: "product", message: "iPhone 15 Pro Max stock updated", time: "15 minutes ago" },
-  { type: "customer", message: "New customer registration", time: "1 hour ago" },
-  { type: "order", message: "Order #ORD-156 shipped", time: "2 hours ago" },
-  { type: "product", message: "New product added: iPad Air M2", time: "3 hours ago" }
-];
+import { TrendingUp, TrendingDown, Users, ShoppingBag, DollarSign, Eye, Loader2 } from "lucide-react";
+import { getDashboardStats, DashboardStats } from "@/services/analyticsService";
 
 export const Analytics = () => {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const data = await getDashboardStats();
+        setStats(data);
+      } catch (err) {
+        setError("Failed to fetch analytics data. Please try again later.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -56,14 +56,7 @@ export const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                <p className="text-2xl font-bold">₦{analyticsData.revenue.current.toLocaleString()}</p>
-                <Badge 
-                  variant="secondary" 
-                  className="mt-2 text-green-600 bg-green-50 border-green-200"
-                >
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +{analyticsData.revenue.change}%
-                </Badge>
+                <p className="text-2xl font-bold">₦{stats?.totalRevenue?.toLocaleString() || 0}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
@@ -75,14 +68,7 @@ export const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
-                <p className="text-2xl font-bold">{analyticsData.orders.current.toLocaleString()}</p>
-                <Badge 
-                  variant="secondary" 
-                  className="mt-2 text-green-600 bg-green-50 border-green-200"
-                >
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +{analyticsData.orders.change}%
-                </Badge>
+                <p className="text-2xl font-bold">{stats?.orderCount?.toLocaleString() || 0}</p>
               </div>
               <ShoppingBag className="h-8 w-8 text-blue-600" />
             </div>
@@ -93,17 +79,10 @@ export const Analytics = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Customers</p>
-                <p className="text-2xl font-bold">{analyticsData.customers.current.toLocaleString()}</p>
-                <Badge 
-                  variant="secondary" 
-                  className="mt-2 text-green-600 bg-green-50 border-green-200"
-                >
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +{analyticsData.customers.change}%
-                </Badge>
+                <p className="text-sm font-medium text-muted-foreground">Total Products</p>
+                <p className="text-2xl font-bold">{stats?.totalProducts?.toLocaleString() || 0}</p>
               </div>
-              <Users className="h-8 w-8 text-purple-600" />
+              <Eye className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -112,17 +91,10 @@ export const Analytics = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Page Views</p>
-                <p className="text-2xl font-bold">{analyticsData.pageViews.current.toLocaleString()}</p>
-                <Badge 
-                  variant="secondary" 
-                  className="mt-2 text-green-600 bg-green-50 border-green-200"
-                >
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +{analyticsData.pageViews.change}%
-                </Badge>
+                <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+                <p className="text-2xl font-bold">{stats?.totalUsers?.toLocaleString() || 0}</p>
               </div>
-              <Eye className="h-8 w-8 text-orange-600" />
+              <Users className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
@@ -136,7 +108,7 @@ export const Analytics = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {topProducts.map((product, index) => (
+              {stats?.topSellingProducts?.map((product, index) => (
                 <div key={product.name} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Badge variant="outline" className="w-8 h-8 flex items-center justify-center">
@@ -148,10 +120,14 @@ export const Analytics = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-primary">₦{product.revenue.toLocaleString()}</p>
+                    <p className="font-semibold text-primary">₦{(product.revenue || 0).toLocaleString()}</p>
                   </div>
                 </div>
-              ))}
+              )) || (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No product data available</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -163,7 +139,7 @@ export const Analytics = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
+              {stats?.newCustomerMetrics?.map((activity, index) => (
                 <div key={index} className="flex items-start space-x-3 p-3 bg-muted/30 rounded-lg">
                   <div className={`w-2 h-2 rounded-full mt-2 ${
                     activity.type === 'order' ? 'bg-green-500' :
@@ -175,7 +151,11 @@ export const Analytics = () => {
                     <p className="text-xs text-muted-foreground">{activity.time}</p>
                   </div>
                 </div>
-              ))}
+              )) || (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No recent activity available</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
